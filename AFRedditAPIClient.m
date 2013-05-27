@@ -8,9 +8,6 @@
 
 #import "AFRedditAPIClient.h"
 #import "AFJSONRequestOperation.h"
-#import "TTTURLRequestFormatter.h"
-
-static NSString *kImgurAPIKey = @"541b2754d7499e8";
 
 @implementation AFRedditAPIClient
 
@@ -20,7 +17,7 @@ static NSString *kImgurAPIKey = @"541b2754d7499e8";
     dispatch_once(&onceToken, ^{
         _sharedInstance = [[self alloc] init];
     });
-    
+
     return _sharedInstance;
 }
 
@@ -35,7 +32,7 @@ static NSString *kImgurAPIKey = @"541b2754d7499e8";
         self.cookie = [currentDefaults objectForKey:@"cookie"];
     }
     [AFJSONRequestOperation addAcceptableContentTypes:[NSSet setWithObject:@"application/x-www-form-urlencoded"]];
-    
+
     [self registerHTTPOperationClass:[AFJSONRequestOperation class]];
     return self;
 }
@@ -68,7 +65,7 @@ static NSString *kImgurAPIKey = @"541b2754d7499e8";
         completion(subreddits, success);
         return;
     }
-    
+
     NSDictionary *parameters = @{
                                  @"uh": self.modHash,
                                  @"limit": @"100"
@@ -121,15 +118,15 @@ static NSString *kImgurAPIKey = @"541b2754d7499e8";
         NSLog(@"Posted to Path: %@", path);
         BOOL success;
         NSDictionary *jsonResponse;
-        
+
         if ([responseObject isKindOfClass:[NSData class]]) {
             jsonResponse = [NSJSONSerialization JSONObjectWithData:responseObject options:NSJSONReadingAllowFragments error:nil][@"json"];
         } else {
             jsonResponse = responseObject[@"json"];
         }
-        
+
         NSDictionary *dataDict = [[NSDictionary alloc] init];
-        
+
         if ([jsonResponse[@"errors"] count]) {
             NSLog(@"Error Posting to Reddit:\n%@", jsonResponse[@"errors"]);
             dataDict =@{ @"errors": jsonResponse[@"errors"] };
@@ -140,7 +137,7 @@ static NSString *kImgurAPIKey = @"541b2754d7499e8";
             success = YES;
         }
         completion(dataDict, success);
-        
+
     } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
         NSLog(@"Error Posting to Path: %@\nWith Error:\n%@", path, error);
     }];
@@ -151,15 +148,15 @@ static NSString *kImgurAPIKey = @"541b2754d7499e8";
         NSLog(@"Got Path: %@", path);
         NSDictionary *jsonResponse;
         BOOL success;
-        
+
         if ([responseObject isKindOfClass:[NSData class]]) {
             jsonResponse = [NSJSONSerialization JSONObjectWithData:responseObject options:NSJSONReadingAllowFragments error:nil][@"json"];
         } else {
             jsonResponse = responseObject[@"json"];
         }
-        
+
         NSDictionary *dataDict = [[NSDictionary alloc] init];
-        
+
         if ([jsonResponse[@"errors"] count]) {
             NSLog(@"Error Getting from Reddit:\n%@", jsonResponse[@"errors"]);
             dataDict =@{ @"errors": jsonResponse[@"errors"] };
@@ -169,9 +166,9 @@ static NSString *kImgurAPIKey = @"541b2754d7499e8";
             dataDict = jsonResponse[@"data"];
             success = YES;
         }
-        
+
         completion(dataDict, success);
-        
+
     } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
         NSLog(@"\nError Getting Path: %@\nWith Error:\n%@", path, error);
     }];
@@ -179,7 +176,7 @@ static NSString *kImgurAPIKey = @"541b2754d7499e8";
 
 - (void) uploadToImgur:(UIImage*)image title:(NSString*)title completion:(void (^)(NSDictionary*))completion {
     AFHTTPClient *client = [AFHTTPClient clientWithBaseURL:[NSURL URLWithString:@"https://api.imgur.com/3"]];
-    [client setDefaultHeader:@"Authorization" value:[NSString stringWithFormat:@"Client-ID %@", kImgurAPIKey]];
+    [client setDefaultHeader:@"Authorization" value:[NSString stringWithFormat:@"Client-ID %@", self.imgurClientID]];
     [client setParameterEncoding:AFFormURLParameterEncoding];
     NSData *imageData = UIImagePNGRepresentation(image);
     NSDictionary *params = @{
@@ -188,13 +185,13 @@ static NSString *kImgurAPIKey = @"541b2754d7499e8";
     NSMutableURLRequest *afRequest = [client multipartFormRequestWithMethod:@"POST" path:@"upload" parameters:params constructingBodyWithBlock:^(id<AFMultipartFormData> formData) {
         [formData appendPartWithFileData:imageData name:title fileName:[NSString stringWithFormat:@"%@.tiff", title] mimeType:@"image/tiff"];
     }];
-    
+
     AFJSONRequestOperation *operation = [AFJSONRequestOperation JSONRequestOperationWithRequest:afRequest success:^(NSURLRequest *request, NSHTTPURLResponse *response, id JSON) {
         completion(JSON);
     } failure:^(NSURLRequest *request, NSHTTPURLResponse *response, NSError *error, id JSON) {
         NSLog(@"Failure Uploading to Imgur:\n%@", JSON);
     }];
-    
+
     [operation start];
 }
 

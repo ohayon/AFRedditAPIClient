@@ -7,11 +7,11 @@ Pod::Spec.new do |s|
   s.author       = { "David Ohayon" => "ohwutup@gmail.com" }
   s.source       = {
     :git => "https://github.com/ohwutup/AFRedditAPIClient.git",
-    :tag => "0.1"
+    :tag => s.version.to_s
   }
   s.ios.deployment_target = '5.0'
   s.osx.deployment_target = '10.7'
   s.source_files = '*.{h,m}'
   s.requires_arc = true
-  s.dependency 'AFNetworking'
+  s.dependency 'AFNetworking', '~> 1.0'
 end
