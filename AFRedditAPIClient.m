@@ -74,7 +74,7 @@
         NSArray *arrayOfSubreddits = subreddits[@"children"];
         NSMutableArray *reddits = [[NSMutableArray alloc] init];
         for (NSDictionary *thisSubreddit in arrayOfSubreddits) {
-            [reddits addObject:thisSubreddit[@"display_name"]];
+            [reddits addObject:thisSubreddit[@"data"][@"display_name"]];
         }
         completion([NSArray arrayWithArray:reddits], success);
     }];
@@ -151,8 +151,10 @@
 
         if ([responseObject isKindOfClass:[NSData class]]) {
             jsonResponse = [NSJSONSerialization JSONObjectWithData:responseObject options:NSJSONReadingAllowFragments error:nil][@"json"];
-        } else {
+        } else if (responseObject[@"json"]) {
             jsonResponse = responseObject[@"json"];
+        } else {
+            jsonResponse = responseObject[@"data"];
         }
 
         NSDictionary *dataDict = [[NSDictionary alloc] init];
@@ -161,9 +163,13 @@
             NSLog(@"Error Getting from Reddit:\n%@", jsonResponse[@"errors"]);
             dataDict =@{ @"errors": jsonResponse[@"errors"] };
             success = NO;
-        } else {
+        } else if (jsonResponse[@"data"]) {
             NSLog(@"Success Getting from Reddit:\n%@", jsonResponse[@"data"]);
             dataDict = jsonResponse[@"data"];
+            success = YES;
+        } else {
+            NSLog(@"Success Getting from Reddit:\n%@", jsonResponse);
+            dataDict = jsonResponse;
             success = YES;
         }
 
