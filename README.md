@@ -4,6 +4,8 @@ A subclass of AFHTTPClient to interact with the (not-so-well-documented) [Reddit
 
 Also includes a method to annonymously upload to [imgur](www.imgur.com) for posting links to images.
 
+![](https://raw.github.com/ohwutup/AFRedditAPIClient/master/umad.jpg)
+
 ## Contact
 
 David Ohayon
